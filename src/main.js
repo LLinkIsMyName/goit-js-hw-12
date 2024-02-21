@@ -119,6 +119,13 @@ function updateGallery(data) {
         captionDelay: 250,
     });
 
+    const galleryItem = document.querySelector('.gallery-item');
+
+    if (galleryItem) {
+        const cardHeight = galleryItem.getBoundingClientRect().height;
+        window.scrollBy(0, cardHeight * perPage);
+    }
+
     const markup = data.hits.map(data => `
         <li class="gallery-item">
             <a href="${data.largeImageURL}">
@@ -149,8 +156,4 @@ function updateGallery(data) {
     } else {
         loadMoreButton.style.display = 'block';
     }
-
-
-    const cardHeight = document.querySelector('.gallery-item').getBoundingClientRect().height;
-    window.scrollBy(0, cardHeight * perPage);
 }
