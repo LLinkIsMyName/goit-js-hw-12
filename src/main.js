@@ -39,6 +39,23 @@ async function fetchDataAndUpdateGallery() {
 
     try {
         const response = await axios.get(url);
+
+       
+        if (!response || !response.data || response.data.hits.length === 0) {
+            iziToast.info({
+                title: 'Info',
+                message: 'No images found for the given search term.',
+                position: 'center',
+            });
+
+            
+            const galleryContainer = document.querySelector(".gallery");
+            galleryContainer.innerHTML = '';
+
+            hideLoader();
+            return;
+        }
+
         const data = response.data;
         updateGallery(data);
     } catch (error) {
@@ -51,6 +68,7 @@ async function fetchDataAndUpdateGallery() {
         });
     }
 }
+
 
 form.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -106,6 +124,9 @@ function handleApiResponse(response) {
 
 function updateGallery(data) {
     const galleryContainer = document.querySelector(".gallery");
+
+
+galleryContainer.innerHTML = '';
 
     const lightbox = new SimpleLightbox('.gallery a', {
         captions: true,
