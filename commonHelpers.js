@@ -7,5 +7,5 @@ import{i as u,a as g,S as h}from"./assets/vendor-5401a4b0.js";(function(){const 
             <p><b>Views: </b>${r.views}</p>
             <p><b>Comments: </b>${r.comments}</p>
             <p><b>Downloads: </b>${r.downloads}</p>
-        </li>`).join("");n.innerHTML=e,a.refresh(),m(),(t.totalHits||0)<=i*c?(l.style.display="none",u.info({title:"Info",message:"We're sorry, but you've reached the end of search results.",position:"center",transitionIn:"fadeInLeft"})):l.style.display="block"}
+        </li>`).join("");n.innerHTML+=e,a.refresh(),m(),(t.totalHits||0)<=i*c?(l.style.display="none",u.info({title:"Info",message:"We're sorry, but you've reached the end of search results.",position:"center",transitionIn:"fadeInLeft"})):l.style.display="block"}
 //# sourceMappingURL=commonHelpers.js.map
