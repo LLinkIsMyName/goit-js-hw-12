@@ -137,7 +137,7 @@ function updateGallery(data) {
             <p><b>Downloads: </b>${data.downloads}</p>
         </li>`).join('');
 
-    galleryContainer.innerHTML = markup;
+    galleryContainer.innerHTML += markup;
     lightbox.refresh();
 
     // Hide the loader after updating the gallery
