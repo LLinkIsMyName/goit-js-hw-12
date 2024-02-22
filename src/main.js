@@ -104,10 +104,8 @@ function handleApiResponse(response) {
     updateGallery(response);
 }
 
-
 function updateGallery(data) {
     const galleryContainer = document.querySelector(".gallery");
-    galleryContainer.innerHTML = '';
 
     const lightbox = new SimpleLightbox('.gallery a', {
         captions: true,
@@ -137,6 +135,7 @@ function updateGallery(data) {
             <p><b>Downloads: </b>${data.downloads}</p>
         </li>`).join('');
 
+    // Append the new markup to the existing content
     galleryContainer.innerHTML += markup;
     lightbox.refresh();
 
@@ -157,3 +156,4 @@ function updateGallery(data) {
         loadMoreButton.style.display = 'block';
     }
 }
+
