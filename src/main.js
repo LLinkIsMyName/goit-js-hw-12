@@ -8,6 +8,7 @@ const input = document.querySelector("input");
 const form = document.querySelector(".form");
 const loadMoreButton = document.querySelector('.btn-load');
 const galleryContainer = document.querySelector(".gallery");
+const loadMoreBtn = document.querySelector('.btn-load');
 
 let currentPage = 1;
 const perPage = 15;
@@ -17,9 +18,15 @@ const config = {
     baseUrl: 'https://pixabay.com/api/',
 };
 
-function buildPixabayUrl(searchInput, page = 1) {
-    return `${config.baseUrl}?key=${config.apiKey}&q=${searchInput}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=${perPage}`;
-}
+const lightbox = new SimpleLightbox('.gallery a', {
+    captions: true,
+    captionType: 'attr',
+    captionsData: 'alt',
+    captionPosition: 'bottom',
+    fadeSpeed: 150,
+    captionSelector: 'img',
+    captionDelay: 250,
+});
 
 const showLoader = () => {
     const loader = document.createElement('span');
@@ -34,6 +41,9 @@ const hideLoader = () => {
     }
 };
 
+function buildPixabayUrl(searchInput, page = 1) {
+    return `${config.baseUrl}?key=${config.apiKey}&q=${searchInput}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=${perPage}`;
+}
 async function fetchDataAndUpdateGallery() {
     const searchInput = input.value.trim();
     const url = buildPixabayUrl(searchInput, currentPage);
@@ -41,15 +51,14 @@ async function fetchDataAndUpdateGallery() {
     try {
         const response = await axios.get(url);
 
-        galleryContainer.innerHTML = ''; // Clear previous markup
-
         if (!response || !response.data || response.data.hits.length === 0) {
             iziToast.info({
                 title: 'Info',
                 message: 'No images found for the given search term.',
                 position: 'center',
             });
-
+            // Clear previous markup
+            galleryContainer.innerHTML = '';
             hideLoader();
             return;
         }
@@ -59,12 +68,34 @@ async function fetchDataAndUpdateGallery() {
     } catch (error) {
         console.error('Error fetching data:', error);
         hideLoader();
-        iziToast.error({
-            title: 'Error',
-            message: 'An error occurred while fetching data. Please try again later.',
-            position: 'center',
-        });
+        // Clear previous markup
+        galleryContainer.innerHTML = '';
+
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            iziToast.error({
+                title: 'Error',
+                message: `API Error: ${error.response.data.message}`,
+                position: 'center',
+            });
+        } else if (error.request) {
+            // The request was made but no response was received
+            iziToast.error({
+                title: 'Error',
+                message: 'Network Error. Please check your internet connection.',
+                position: 'center',
+            });
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            iziToast.error({
+                title: 'Error',
+                message: 'An unexpected error occurred. Please try again later.',
+                position: 'center',
+            });
+        }
     }
+
 }
 
 form.addEventListener('submit', async function (e) {
@@ -79,8 +110,12 @@ form.addEventListener('submit', async function (e) {
         });
         return;
     }
+
     showLoader();
     await fetchDataAndUpdateGallery();
+
+    e.target.reset();
+    hideLoader();
 });
 
 loadMoreButton.addEventListener('click', async function () {
@@ -89,43 +124,8 @@ loadMoreButton.addEventListener('click', async function () {
     await fetchDataAndUpdateGallery();
 });
 
-function handleApiResponse(response) {
-    hideLoader();
-
-    galleryContainer.innerHTML = ''; // Clear previous markup
-
-    if (!response || !response.hits) {
-        iziToast.error({
-            title: 'Error',
-            message: 'Invalid response format. Please try again later.',
-            position: 'center',
-        });
-        return;
-    }
-
-    if (response.hits.length === 0) {
-        iziToast.info({
-            title: 'Info',
-            message: 'Sorry, there are no images matching your search query. Please try again!',
-            position: 'center',
-            transitionIn: "fadeInLeft",
-        });
-        return;
-    }
-
-    updateGallery(response);
-}
-
 function updateGallery(data) {
-    const lightbox = new SimpleLightbox('.gallery a', {
-        captions: true,
-        captionType: 'attr',
-        captionsData: 'alt',
-        captionPosition: 'bottom',
-        fadeSpeed: 150,
-        captionSelector: 'img',
-        captionDelay: 250,
-    });
+
 
     const galleryItem = document.querySelector('.gallery-item');
 
@@ -145,11 +145,9 @@ function updateGallery(data) {
             <p><b>Downloads: </b>${data.downloads}</p>
         </li>`).join('');
 
-    // Append the new markup to the existing content
     galleryContainer.innerHTML += markup;
     lightbox.refresh();
 
-    // Hide the loader after updating the gallery
     hideLoader();
 
     const totalHits = data.totalHits || 0;
