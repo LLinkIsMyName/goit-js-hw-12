@@ -44,76 +44,22 @@ const hideLoader = () => {
 function buildPixabayUrl(searchInput, page = 1) {
     return `${config.baseUrl}?key=${config.apiKey}&q=${searchInput}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=${perPage}`;
 }
-async function fetchDataAndUpdateGallery() {
-    const searchInput = input.value.trim();
-    const url = buildPixabayUrl(searchInput, currentPage);
 
-    try {
-        const response = await axios.get(url);
-
-        if (!response || !response.data || response.data.hits.length === 0) {
-            iziToast.info({
-                title: 'Info',
-                message: 'No images found for the given search term.',
-                position: 'center',
-            });
-            // Clear previous markup
-            galleryContainer.innerHTML = '';
-            hideLoader();
-            return;
-        }
-
-        const data = response.data;
-        updateGallery(data);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        hideLoader();
-        // Clear previous markup
-        galleryContainer.innerHTML = '';
-
-        if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            iziToast.error({
-                title: 'Error',
-                message: `API Error: ${error.response.data.message}`,
-                position: 'center',
-            });
-        } else if (error.request) {
-            // The request was made but no response was received
-            iziToast.error({
-                title: 'Error',
-                message: 'Network Error. Please check your internet connection.',
-                position: 'center',
-            });
-        } else {
-            // Something happened in setting up the request that triggered an Error
-            iziToast.error({
-                title: 'Error',
-                message: 'An unexpected error occurred. Please try again later.',
-                position: 'center',
-            });
-        }
-    }
-
-}
+let currentSearchQuery = ''; // Variable to store the current search query
 
 form.addEventListener('submit', async function (e) {
     e.preventDefault();
     currentPage = 1;
-    const searchInput = input.value.trim();
-
-    if (!searchInput) {
+    currentSearchQuery = input.value.trim(); // Save the current search query
+    if (!currentSearchQuery) {
         iziToast.error({
             title: 'Error',
             message: 'Please enter a valid search term',
         });
         return;
     }
-
     showLoader();
     await fetchDataAndUpdateGallery();
-
     e.target.reset();
     hideLoader();
 });
@@ -123,6 +69,47 @@ loadMoreButton.addEventListener('click', async function () {
     showLoader();
     await fetchDataAndUpdateGallery();
 });
+
+async function fetchDataAndUpdateGallery() {
+    const url = buildPixabayUrl(currentSearchQuery, currentPage); // Use the saved search query
+    try {
+        const response = await axios.get(url);
+        if (!response || !response.data || response.data.hits.length === 0) {
+            iziToast.info({
+                title: 'Info',
+                message: 'No images found for the given search term.',
+                position: 'center',
+            });
+            hideLoader();
+            return;
+        }
+        const data = response.data;
+        updateGallery(data);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        hideLoader();
+        galleryContainer.innerHTML = '';
+        if (error.response) {
+            iziToast.error({
+                title: 'Error',
+                message: `API Error: ${error.response.data.message}`,
+                position: 'center',
+            });
+        } else if (error.request) {
+            iziToast.error({
+                title: 'Error',
+                message: 'Network Error. Please check your internet connection.',
+                position: 'center',
+            });
+        } else {
+            iziToast.error({
+                title: 'Error',
+                message: 'An unexpected error occurred. Please try again later.',
+                position: 'center',
+            });
+        }
+    }
+}
 
 function updateGallery(data) {
 
@@ -149,10 +136,10 @@ function updateGallery(data) {
     lightbox.refresh();
 
     hideLoader();
-
     const totalHits = data.totalHits || 0;
+    const remainingHits = totalHits - currentPage * perPage;
 
-    if (totalHits <= currentPage * perPage) {
+    if (remainingHits <= 0) {
         loadMoreButton.style.display = 'none';
         iziToast.info({
             title: 'Info',
