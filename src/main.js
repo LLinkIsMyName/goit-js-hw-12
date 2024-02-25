@@ -71,7 +71,13 @@ loadMoreButton.addEventListener('click', async function () {
 });
 
 async function fetchDataAndUpdateGallery() {
-    const url = buildPixabayUrl(currentSearchQuery, currentPage); // Use the saved search query
+    const url = buildPixabayUrl(currentSearchQuery, currentPage);
+
+    // Очистити галерею при початку нового пошуку
+    if (currentPage === 1) {
+        galleryContainer.innerHTML = '';
+    }
+
     try {
         const response = await axios.get(url);
         if (!response || !response.data || response.data.hits.length === 0) {
@@ -81,6 +87,7 @@ async function fetchDataAndUpdateGallery() {
                 position: 'center',
             });
             hideLoader();
+            galleryContainer.innerHTML = '';
             return;
         }
         const data = response.data;
@@ -88,7 +95,6 @@ async function fetchDataAndUpdateGallery() {
     } catch (error) {
         console.error('Error fetching data:', error);
         hideLoader();
-        galleryContainer.innerHTML = '';
         if (error.response) {
             iziToast.error({
                 title: 'Error',
@@ -110,6 +116,7 @@ async function fetchDataAndUpdateGallery() {
         }
     }
 }
+
 
 function updateGallery(data) {
 
