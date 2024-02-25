@@ -58,6 +58,7 @@ form.addEventListener('submit', async function (e) {
         });
         return;
     }
+    loadMoreButton.style.display = 'none';
     showLoader();
     await fetchDataAndUpdateGallery();
     e.target.reset();
